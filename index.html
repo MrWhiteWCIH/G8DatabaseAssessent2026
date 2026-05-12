@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CLASSIFIED ACCESS SYSTEM</title>
+
+    <style>
+        body {
+            background: radial-gradient(circle, #000000, #001100);
+            color: #00ff88;
+            font-family: "Courier New", monospace;
+            text-align: center;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #00ffaa;
+        }
+
+        .terminal {
+            border: 2px solid #00ff88;
+            padding: 25px;
+            width: 520px;
+            margin: auto;
+            box-shadow: 0 0 20px #00ff88;
+            border-radius: 10px;
+            background: rgba(0,0,0,0.9);
+        }
+
+        input {
+            margin-top: 10px;
+            padding: 10px;
+            width: 80%;
+            background: black;
+            border: 1px solid #00ff88;
+            color: #00ff88;
+        }
+
+        button {
+            margin-top: 10px;
+            padding: 10px 20px;
+            background: black;
+            border: 1px solid #00ff88;
+            color: #00ff88;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #003300;
+        }
+
+        #timer {
+            margin-top: 10px;
+            color: #ffaa00;
+        }
+        #logoTop {
+            display: flex;
+            text-align: center;
+            align-items: center;
+            font-size: 24px;
+        }
+        #logoTop img {
+            margin-right: 10px;
+            margin-left: auto;
+
+        }
+
+    </style>
+</head>
+
+<body>
+<div id="logoTop"><h1>WELLINGTON COLLEGE SECRET DATABASE</h1>
+<img src="topseclogo.jpeg" alt="logo" width="10%"></div>
+
+<h1>🔐 CLASSIFIED ACCESS TERMINAL</h1>
+<p id="timer">TIME REMAINING: 30:00</p>
+
+<div class="terminal" id="game"></div>
+
+<script>
+
+/* =============================
+   CONFIG / QUESTIONS
+============================= */
+
+const questions = [
+
+/* CORE */
+{question: "ACCESS CODE 1: Find the NAME of the employee with EmployeeID = 101.", answer: "john smith"},
+{question: "ACCESS CODE 2: What is the AGE of Sarah Lee?", answer: "28"},
+{question: "ACCESS CODE 3: What DepartmentID does Michael Chen work in?", answer: "d3"},
+{question: "ACCESS CODE 4: Which employee has EmployeeID = 104?", answer: "aisha khan"},
+{question: "ACCESS CODE 5: What is the DepartmentName for DepartmentID D2?", answer: "finance"},
+
+/* DEVELOPING */
+{question: "ACCESS CODE 6: Which employee works in DepartmentID D1 and is 30 years old?", answer: "aisha khan"},
+{question: "ACCESS CODE 7: What DepartmentName does John Smith work in?", answer: "it"},
+{question: "ACCESS CODE 8: Find the EmployeeID of David Wong.", answer: "105"},
+{question: "ACCESS CODE 9: Which department does the employee with Age = 41 work in?", answer: "hr"},
+{question: "ACCESS CODE 10: Which employee works in Finance?", answer: "sarah lee"},
+
+/* CHALLENGE */
+{question: "ACCESS CODE 11: Find the NAME of the oldest employee.", answer: "michael chen"},
+{question: "ACCESS CODE 12: Which employee works in IT and is older than 30?", answer: "john smith"},
+{question: "ACCESS CODE 13: Find the DepartmentName of the employee with EmployeeID = 103.", answer: "hr"},
+{question: "ACCESS CODE 14: Which employee is in Finance and has the highest age?", answer: "david wong"},
+{question: "ACCESS CODE 15: Find the NAME of the employee who works in DepartmentID D1 and is NOT 34 years old.", answer: "aisha khan"}
+
+];
+
+/* =============================
+   VARIABLES
+============================= */
+
+let current = 0;
+let attempts = 0;
+let studentID = prompt("ENTER YOUR FULL NAME");
+let studentGrade = prompt("ENTER YOUR GRADE");
+let startTime = Date.now();
+let timeLimit = 1800; // 30 mins
+let userAnswers = [];
+
+/* =============================
+   TIMER
+============================= */
+
+setInterval(() => {
+    let elapsed = Math.floor((Date.now() - startTime)/1000);
+    let remaining = timeLimit - elapsed;
+
+    let minutes = Math.floor(remaining / 60);
+    let seconds = remaining % 60;
+
+    document.getElementById("timer").innerText =
+        "TIME REMAINING: " + minutes + ":" + (seconds < 10 ? "0"+seconds : seconds);
+
+    if (remaining <= 0) {
+        alert("⏳ TIME UP - SYSTEM LOCKED");
+        location.reload();
+    }
+
+}, 1000);
+
+/* =============================
+   LOAD QUESTION
+============================= */
+
+function loadQuestion() {
+
+    document.getElementById("game").innerHTML = `
+        <p>ACCESS LEVEL ${current + 1} / ${questions.length}</p>
+        <p>${questions[current].question}</p>
+        <input id="answer" autofocus />
+        <br>
+        <button onclick="checkAnswer()">ENTER</button>
+    `;
+}
+
+/* =============================
+   CHECK ANSWER
+============================= */
+
+function checkAnswer() {
+
+let input = document.getElementById("answer").value.trim().toLowerCase();
+let correct = questions[current].answer.toLowerCase();
+
+// Store answer attempt
+userAnswers[current] = input;
+
+if(input === correct){
+
+    attempts = 0;
+    current++;
+
+    if(current < questions.length){
+        loadQuestion();
+    } else {
+        endGame();
+    }
+
+} else {
+
+    attempts++;
+    alert("❌ ACCESS DENIED");
+
+    if(attempts >= 2){
+        alert("🚨 SYSTEM RESET");
+        current = 0;
+        attempts = 0;
+        userAnswers = []; // reset answers too
+    }
+
+    loadQuestion();
+}
+}
+
+/* =============================
+   END GAME
+============================= */
+
+function endGame(){
+
+    let totalTime = Math.floor((Date.now() - startTime)/1000);
+
+    document.getElementById("game").innerHTML = `
+        <h2>✅ ACCESS GRANTED</h2>
+        <p>AGENT ID: ${studentID}</p>
+        <p>AGENT GRADE: ${studentGrade}</p>
+        <p>MISSION COMPLETE</p>
+        <p>TIME: ${totalTime} seconds</p>
+        <p>TAKE A SCREENSHOT AND SUBMIT IN TEAMS</p>
+    `;
+    downloadCSV();
+}
+
+loadQuestion();
+
+/* =============================
+ Download CSV
+============================= */
+
+function downloadCSV() {
+
+let timeTaken = Math.floor((Date.now() - startTime) / 1000);
+
+let csv = "StudentName,StudentGrade,QuestionReached,TimeTaken,Answers\n";
+
+let answersText = "";
+
+for(let i = 0; i < userAnswers.length; i++){
+    answersText += `Q${i+1}:${userAnswers[i]} | `;
+}
+
+csv += `${studentID},${studentGrade},${current},${timeTaken},"${answersText}"`;
+
+let blob = new Blob([csv], { type: 'text/csv' });
+let link = document.createElement("a");
+
+link.href = URL.createObjectURL(blob);
+link.download = `${studentID}_${studentGrade}_result.csv`;
+
+link.click();
+}
+
+
+window.addEventListener("beforeunload", function () {
+    downloadCSV();
+});
+
+
+</script>
+
+</body>
+</html>

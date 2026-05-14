@@ -116,29 +116,53 @@ let attempts = 0;
 let studentID = prompt("ENTER YOUR FULL NAME");
 let studentGrade = prompt("ENTER YOUR GRADE");
 let startTime = Date.now();
-let timeLimit = 1800; // 30 mins
+let timeLimit = 18; // 30 mins
 let userAnswers = [];
+let timeExpired = false;
+let hasDownloaded = false;
+
 
 /* =============================
    TIMER
 ============================= */
 
-setInterval(() => {
-    let elapsed = Math.floor((Date.now() - startTime)/1000);
-    let remaining = timeLimit - elapsed;
+let timer = setInterval(() => {
 
-    let minutes = Math.floor(remaining / 60);
-    let seconds = remaining % 60;
+let elapsed = Math.floor((Date.now() - startTime)/1000);
+let remaining = timeLimit - elapsed;
 
-    document.getElementById("timer").innerText =
-        "TIME REMAINING: " + minutes + ":" + (seconds < 10 ? "0"+seconds : seconds);
+if (remaining < 0) remaining = 0;
 
-    if (remaining <= 0) {
-        alert("⏳ TIME UP - SYSTEM LOCKED");
+let minutes = Math.floor(remaining / 60);
+let seconds = remaining % 60;
+
+document.getElementById("timer").innerText =
+    "TIME REMAINING: " + minutes + ":" + (seconds < 10 ? "0"+seconds : seconds);
+
+if (remaining <= 0) {
+
+    clearInterval(timer); // ✅ stop timer
+    timeExpired = true;   // ✅ lock system
+
+    // ✅ LOCK UI
+    document.getElementById("game").innerHTML = `
+        <h2>⏳ TIME UP</h2>
+        <p>SESSION TERMINATED</p>
+        <p>DOWNLOADING YOUR REPORT - DO NOT CLOSE</p>
+    `;
+
+    // ✅ DOWNLOAD PROGRESS
+    downloadCSV();
+
+    // ✅ WAIT (IMPORTANT so download completes)
+    setTimeout(() => {
         location.reload();
-    }
+    }, 2000);
+
+}
 
 }, 1000);
+``
 
 /* =============================
    LOAD QUESTION
@@ -160,6 +184,8 @@ function loadQuestion() {
 ============================= */
 
 function checkAnswer() {
+
+if (timeExpired) return;
 
 let input = document.getElementById("answer").value.trim().toLowerCase();
 let correct = questions[current].answer.toLowerCase();
@@ -221,6 +247,11 @@ loadQuestion();
 
 function downloadCSV() {
 
+
+if (hasDownloaded) return; // ✅ STOP duplicates
+hasDownloaded = true;
+
+
 let timeTaken = Math.floor((Date.now() - startTime) / 1000);
 
 let csv = "StudentName,StudentGrade,QuestionReached,TimeTaken,Answers\n";
@@ -244,7 +275,12 @@ link.click();
 
 
 window.addEventListener("beforeunload", function () {
+
+// ✅ Only download if NOT already done AND time hasn't expired normally
+if (!hasDownloaded && !timeExpired) {
     downloadCSV();
+}
+
 });
 
 
